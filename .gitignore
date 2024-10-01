@@ -1,0 +1,7 @@
+.vs
+examples/Release/
+examples/Debug/
+examples/amplitude-set-get/Release
+examples/amplitude-set-get/Debug
+examples/amplitude-set-get/x64
+examples/x64
