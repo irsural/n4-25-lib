@@ -25,6 +25,11 @@ struct usb_sync_t
   bool stop = false;
 } usb_sync;
 
+void log_info(const std::string& message)
+{
+  std::cout << message << std::endl;
+}
+
 void usb_tick(const n4_25_api_t& n4_25_api)
 {
   {
@@ -62,6 +67,8 @@ void main_loop(n4_25_api_t& n4_25_api)
     usb_sync.cv.wait(usb_cv_lock, []() { return usb_sync.ready; });
   }
 
+  std::string action_result = "";
+
   while (1) {
     log_info(
       "\nВыберите операцию:\n"
@@ -70,6 +77,11 @@ void main_loop(n4_25_api_t& n4_25_api)
       "3) Считать амплитуду\n"
       "4) Выйти"
     );
+
+    if (!action_result.empty()) {
+      log_info("\n" + action_result);
+    }
+
     action_t action = static_cast<action_t>(
       get_input<int>(static_cast<int>(action_t::select_usb), static_cast<int>(action_t::exit))
     );
@@ -95,9 +107,9 @@ void main_loop(n4_25_api_t& n4_25_api)
         uint32_t option = get_input<uint32_t>(1, usb_list.size() + 1);
         if (option != usb_list.size() + 1) {
           if (n4_25_api.connect_usb(usb_list[option - 1].c_str())) {
-            log_info("Успешное подключение");
+            action_result = "Успешное подключение";
           } else {
-            log_error("Не удалось подключиться");
+            action_result = "Ошибка: не удалось подключиться";
           }
         }
       } break;
@@ -109,7 +121,7 @@ void main_loop(n4_25_api_t& n4_25_api)
           if (n4_25_api.is_connected()) {
             n4_25_connected = true;
           } else {
-            log_error("Нет соединения с Н4-25");
+            action_result = "Ошибка: нет соединения с Н4-25";
           }
         }
 
@@ -128,13 +140,13 @@ void main_loop(n4_25_api_t& n4_25_api)
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
             if (current_amplitude == target_amplitude) {
-              log_info("Амплитуда установлена");
+              action_result = "Амплитуда установлена";
               break;
             }
 
             std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
             if (!n4_25_api.is_connected()) {
-              log_error("Нет соединения с Н4-25");
+              action_result = "Ошибка: нет соединения с Н4-25";
               break;
             }
             current_amplitude = n4_25_api.get_amplitude();
@@ -145,9 +157,9 @@ void main_loop(n4_25_api_t& n4_25_api)
       case (action_t::get_amplitude): {
         std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
         if (n4_25_api.is_connected()) {
-          log_info("Текущий уровень сигнала " + std::to_string(n4_25_api.get_amplitude()));
+          action_result = "Текущий уровень сигнала " + std::to_string(n4_25_api.get_amplitude());
         } else {
-          log_error("Нет соединения с Н4-25");
+          action_result = "Ошибка: нет соединения с Н4-25";
         }
       } break;
 
