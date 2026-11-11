@@ -173,7 +173,9 @@ void main_loop(n4_25_api_t& n4_25_api)
 
 int main()
 {
-  setlocale(LC_ALL, "Russian");
+#ifdef _WIN32
+  SetConsoleOutputCP(65001); "Russian");
+#endif // _WIN32
 
   std::string error_message;
   n4_25_library_handle_t n4_25_dll = load_n4_25_lib(error_message);
