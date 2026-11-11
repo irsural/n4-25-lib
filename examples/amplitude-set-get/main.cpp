@@ -1,16 +1,14 @@
-#include <clocale>
-#include <iostream>
-#include <thread>
-#include <condition_variable>
-#include <mutex>
-#include <chrono>
-#include <string>
-
-#include <n4-25-api.h>
-
-#include <n4-25.h>
 #include "utils.h"
 
+#include <chrono>
+#include <clocale>
+#include <condition_variable>
+#include <iostream>
+#include <mutex>
+#include <n4-25-api.h>
+#include <n4-25.h>
+#include <string>
+#include <thread>
 
 enum class action_t {
   select_usb = 1,
@@ -19,14 +17,13 @@ enum class action_t {
   exit = 4
 };
 
-
-struct usb_sync_t {
+struct usb_sync_t
+{
   std::mutex api_mutex{};
   std::condition_variable cv{};
   bool ready = false;
   bool stop = false;
 } usb_sync;
-
 
 void usb_tick(const n4_25_api_t& n4_25_api)
 {
@@ -56,7 +53,6 @@ void usb_tick(const n4_25_api_t& n4_25_api)
   usb_sync.cv.notify_one();
 }
 
-
 void main_loop(n4_25_api_t& n4_25_api)
 {
   std::thread usb_tick_thread(usb_tick, n4_25_api);
@@ -66,7 +62,7 @@ void main_loop(n4_25_api_t& n4_25_api)
     usb_sync.cv.wait(usb_cv_lock, []() { return usb_sync.ready; });
   }
 
-  while(1) {
+  while (1) {
     log_info(
       "\nВыберите операцию:\n"
       "1) Выбрать USB\n"
@@ -103,7 +99,7 @@ void main_loop(n4_25_api_t& n4_25_api)
           } else {
             log_error("Не удалось подключиться");
           }
-         }
+        }
       } break;
 
       case (action_t::set_amplitude): {
@@ -128,7 +124,7 @@ void main_loop(n4_25_api_t& n4_25_api)
             n4_25_api.set_amplitude(target_amplitude);
           }
 
-          while(1) {
+          while (1) {
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
             if (current_amplitude == target_amplitude) {
@@ -169,7 +165,6 @@ void main_loop(n4_25_api_t& n4_25_api)
     }
   }
 }
-
 
 int main()
 {

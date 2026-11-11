@@ -14,21 +14,22 @@ using n4_25_library_handle_t = HMODULE;
 #elif defined(__linux__)
 
 #include <dlfcn.h>
-using n4_25_library_handle_t = void *;
+using n4_25_library_handle_t = void*;
 #define N4_25_GET_SYMBOL dlsym
 
 #else
 #error Неподдерживаемая платформа: поддерживаются Windows x86 и Linux x86-64
 #endif
 
-#include <string>
 #include <n4-25-api.h>
+#include <string>
 
-inline n4_25_library_handle_t load_n4_25_lib(std::string &error_message) {
+inline n4_25_library_handle_t load_n4_25_lib(std::string& error_message)
+{
 #if defined(_WIN32)
   n4_25_library_handle_t library = LoadLibraryA("n4-25.dll");
   if (library == nullptr) {
-    error_message =  std::to_string(GetLastError());
+    error_message = std::to_string(GetLastError());
   }
 #else
   n4_25_library_handle_t library = dlopen("libn4-25.so", RTLD_NOW | RTLD_LOCAL);
@@ -39,7 +40,8 @@ inline n4_25_library_handle_t load_n4_25_lib(std::string &error_message) {
   return library;
 }
 
-inline void free_n4_25_lib(n4_25_library_handle_t library) {
+inline void free_n4_25_lib(n4_25_library_handle_t library)
+{
 #if defined(_WIN32)
   FreeLibrary(library);
 #else
@@ -47,14 +49,14 @@ inline void free_n4_25_lib(n4_25_library_handle_t library) {
 #endif
 }
 
-#define N4_25_INIT_API(field, dll, function)                                   \
+#define N4_25_INIT_API(field, dll, function) \
   field = reinterpret_cast<function##_func>(N4_25_GET_SYMBOL(dll, #function)); \
-  if (field == nullptr) {                                                      \
-    return false;                                                              \
+  if (field == nullptr) { \
+    return false; \
   }
 
-inline bool n4_25_init_api(n4_25_library_handle_t a_n4_25_dll,
-                           n4_25_api_t *a_api) {
+inline bool n4_25_init_api(n4_25_library_handle_t a_n4_25_dll, n4_25_api_t* a_api)
+{
   N4_25_INIT_API(a_api->revision, a_n4_25_dll, revision);
 
   N4_25_INIT_API(a_api->usb_init, a_n4_25_dll, usb_init);

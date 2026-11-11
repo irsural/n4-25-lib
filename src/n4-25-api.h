@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-
 enum dc_polarity_t {
   pos = 0,
   neg = 1
@@ -29,9 +28,8 @@ typedef void (*get_usb_devices_func)(char** ap_devices);
 typedef void (*free_usb_devices_func)(char** ap_devices);
 typedef int (*get_usb_status_func)();
 
-typedef int (*connect_usb_func)(const char *ap_device_path);
+typedef int (*connect_usb_func)(const char* ap_device_path);
 typedef void (*disconnect_usb_func)();
-
 
 typedef double (*get_amplitude_func)();
 typedef void (*set_amplitude_func)(double a_amplitude);
@@ -52,7 +50,6 @@ typedef int (*is_connected_func)();
 
 typedef int (*is_signal_ready_func)();
 
-
 struct n4_25_api_t
 {
   revision_func revision;
@@ -69,7 +66,6 @@ struct n4_25_api_t
 
   connect_usb_func connect_usb;
   disconnect_usb_func disconnect_usb;
-
 
   get_amplitude_func get_amplitude;
   set_amplitude_func set_amplitude;
@@ -89,8 +85,6 @@ struct n4_25_api_t
   is_connected_func is_connected;
 
   is_signal_ready_func is_signal_ready;
-
 };
-
 
 #endif // N4_25_API_H
