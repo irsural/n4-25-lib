@@ -1,3 +1,4 @@
+#include <clocale>
 #include <iostream>
 #include <thread>
 #include <condition_variable>
@@ -6,8 +7,8 @@
 #include <string>
 
 #include <n4-25-api.h>
-#include <n4-25-windows.h>
 
+#include <n4-25.h>
 #include "utils.h"
 
 
@@ -174,21 +175,23 @@ int main()
 {
   setlocale(LC_ALL, "Russian");
 
-  HINSTANCE n4_25_dll = LoadLibraryA("n4-25.dll");
+  std::string error_message;
+  n4_25_library_handle_t n4_25_dll = load_n4_25_lib(error_message);
   if (n4_25_dll == nullptr) {
-    log_info("Не удалось загрузить библиотеку n4-24.dll");
+    std::cerr << "Не удалось загрузить библиотеку n4-25. Ошибка: " << error_message << std::endl;
     return 1;
   }
 
   n4_25_api_t n4_25_api{};
   if (!n4_25_init_api(n4_25_dll, &n4_25_api)) {
-    log_info("Не удалось инициализировать библиотеку N4-24.dll");
+    std::cerr << "Не удалось инициализировать библиотеку n4-25" << std::endl;
+    free_n4_25_lib(n4_25_dll);
     return 1;
   }
 
-  log_info("Библиотека n4-24.dll загружена. Версия: " + std::to_string(n4_25_api.revision()));
+  log_info("Библиотека n4-25 загружена. Версия: " + std::to_string(n4_25_api.revision()));
 
   main_loop(n4_25_api);
 
-  FreeLibrary(n4_25_dll);
+  free_n4_25_lib(n4_25_dll);
 }

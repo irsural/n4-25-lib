@@ -1,6 +1,7 @@
 #ifndef N4_25_API_H
 #define N4_25_API_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 
