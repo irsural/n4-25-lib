@@ -23,7 +23,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(n4_25 INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
-option(N4_25_BUILD_EXAMPLES "Собирать пример работы с N4-25" OFF)
+option(N4_25_BUILD_EXAMPLES "Собирать пример работы с Н4-25" OFF)
 if(N4_25_BUILD_EXAMPLES)
     add_subdirectory(examples/amplitude-set-get)
 endif()

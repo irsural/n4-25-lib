@@ -113,7 +113,7 @@ void main_loop(n4_25_api_t& n4_25_api)
           if (n4_25_api.is_connected()) {
             n4_25_connected = true;
           } else {
-            log_error("Нет соединения с N4-25");
+            log_error("Нет соединения с Н4-25");
           }
         }
 
@@ -138,7 +138,7 @@ void main_loop(n4_25_api_t& n4_25_api)
 
             std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
             if (!n4_25_api.is_connected()) {
-              log_error("Нет соединения с N4-25");
+              log_error("Нет соединения с Н4-25");
               break;
             }
             current_amplitude = n4_25_api.get_amplitude();
@@ -151,7 +151,7 @@ void main_loop(n4_25_api_t& n4_25_api)
         if (n4_25_api.is_connected()) {
           log_info("Текущий уровень сигнала " + std::to_string(n4_25_api.get_amplitude()));
         } else {
-          log_error("Нет соединения с N4-25");
+          log_error("Нет соединения с Н4-25");
         }
       } break;
 
