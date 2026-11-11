@@ -14,7 +14,7 @@ void log_info(const std::string& message) {
 
 
 void log_error(const std::string& message) {
-  std::cout << "Îøèáêà: " << message << std::endl;
+  std::cout << "ÐžÑˆÐ¸Ð±ÐºÐ°: " << message << std::endl;
 }
 
 
@@ -26,7 +26,7 @@ T get_input(T min, T max)
     std::cin >> input;
 
     while (input < min || input > max) {
-        std::cout << "Îøèáêà: ââåäèòå ÷èñëî îò " << min << " äî " << max << std::endl << ">>> ";
+        std::cout << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð²Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ñ‡Ð¸ÑÐ»Ð¾ Ð¾Ñ‚ " << min << " Ð´Ð¾ " << max << std::endl << ">>> ";
         std::cin >> input;
     }
 

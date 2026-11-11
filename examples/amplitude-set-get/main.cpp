@@ -68,11 +68,11 @@ void main_loop(n4_25_api_t& n4_25_api)
 
   while(1) {
     log_info(
-      "\nВыберите операцию:\n"
-      "1) Выбрать USB\n"
-      "2) Установить амплитуду\n"
-      "3) Считать амплитуду\n"
-      "4) Выйти"
+      "\nР’С‹Р±РµСЂРёС‚Рµ РѕРїРµСЂР°С†РёСЋ:\n"
+      "1) Р’С‹Р±СЂР°С‚СЊ USB\n"
+      "2) РЈСЃС‚Р°РЅРѕРІРёС‚СЊ Р°РјРїР»РёС‚СѓРґСѓ\n"
+      "3) РЎС‡РёС‚Р°С‚СЊ Р°РјРїР»РёС‚СѓРґСѓ\n"
+      "4) Р’С‹Р№С‚Рё"
     );
     action_t action = static_cast<action_t>(
       get_input<int>(static_cast<int>(action_t::select_usb), static_cast<int>(action_t::exit))
@@ -89,19 +89,19 @@ void main_loop(n4_25_api_t& n4_25_api)
           n4_25_api.free_usb_devices(&usb_devices);
         }
 
-        log_info("\nВыберите USB:");
+        log_info("\nР’С‹Р±РµСЂРёС‚Рµ USB:");
         size_t i = 0;
         for (; i < usb_list.size(); ++i) {
           log_info(std::to_string(i + 1) + ") " + usb_list[i]);
         }
-        log_info(std::to_string(i + 1) + ") Вернуться в меню");
+        log_info(std::to_string(i + 1) + ") Р’РµСЂРЅСѓС‚СЊСЃСЏ РІ РјРµРЅСЋ");
 
         uint32_t option = get_input<uint32_t>(1, usb_list.size() + 1);
         if (option != usb_list.size() + 1) {
           if (n4_25_api.connect_usb(usb_list[option - 1].c_str())) {
-            log_info("Успешное подключение");
+            log_info("РЈСЃРїРµС€РЅРѕРµ РїРѕРґРєР»СЋС‡РµРЅРёРµ");
           } else {
-            log_error("Не удалось подключиться");
+            log_error("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРєР»СЋС‡РёС‚СЊСЃСЏ");
           }
          }
       } break;
@@ -113,12 +113,12 @@ void main_loop(n4_25_api_t& n4_25_api)
           if (n4_25_api.is_connected()) {
             n4_25_connected = true;
           } else {
-            log_error("Нет соединения с N4-25");
+            log_error("РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ N4-25");
           }
         }
 
         if (n4_25_connected) {
-          log_info("\nВведите амплитуду:");
+          log_info("\nР’РІРµРґРёС‚Рµ Р°РјРїР»РёС‚СѓРґСѓ:");
           double target_amplitude = get_input<double>(0, 10);
           double current_amplitude = 0;
 
@@ -132,13 +132,13 @@ void main_loop(n4_25_api_t& n4_25_api)
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
             if (current_amplitude == target_amplitude) {
-              log_info("Амплитуда установлена");
+              log_info("РђРјРїР»РёС‚СѓРґР° СѓСЃС‚Р°РЅРѕРІР»РµРЅР°");
               break;
             }
 
             std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
             if (!n4_25_api.is_connected()) {
-              log_error("Нет соединения с N4-25");
+              log_error("РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ N4-25");
               break;
             }
             current_amplitude = n4_25_api.get_amplitude();
@@ -149,14 +149,14 @@ void main_loop(n4_25_api_t& n4_25_api)
       case (action_t::get_amplitude): {
         std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
         if (n4_25_api.is_connected()) {
-          log_info("Текущий уровень сигнала " + std::to_string(n4_25_api.get_amplitude()));
+          log_info("РўРµРєСѓС‰РёР№ СѓСЂРѕРІРµРЅСЊ СЃРёРіРЅР°Р»Р° " + std::to_string(n4_25_api.get_amplitude()));
         } else {
-          log_error("Нет соединения с N4-25");
+          log_error("РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ N4-25");
         }
       } break;
 
       case (action_t::exit): {
-        log_info("Выход из программы");
+        log_info("Р’С‹С…РѕРґ РёР· РїСЂРѕРіСЂР°РјРјС‹");
         {
           std::unique_lock<std::mutex> usb_lock(usb_sync.api_mutex);
           usb_sync.ready = false;
@@ -178,18 +178,18 @@ int main()
   std::string error_message;
   n4_25_library_handle_t n4_25_dll = load_n4_25_lib(error_message);
   if (n4_25_dll == nullptr) {
-    std::cerr << "Не удалось загрузить библиотеку n4-25. Ошибка: " << error_message << std::endl;
+    std::cerr << "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ Р±РёР±Р»РёРѕС‚РµРєСѓ n4-25. РћС€РёР±РєР°: " << error_message << std::endl;
     return 1;
   }
 
   n4_25_api_t n4_25_api{};
   if (!n4_25_init_api(n4_25_dll, &n4_25_api)) {
-    std::cerr << "Не удалось инициализировать библиотеку n4-25" << std::endl;
+    std::cerr << "РќРµ СѓРґР°Р»РѕСЃСЊ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°С‚СЊ Р±РёР±Р»РёРѕС‚РµРєСѓ n4-25" << std::endl;
     free_n4_25_lib(n4_25_dll);
     return 1;
   }
 
-  log_info("Библиотека n4-25 загружена. Версия: " + std::to_string(n4_25_api.revision()));
+  log_info("Р‘РёР±Р»РёРѕС‚РµРєР° n4-25 Р·Р°РіСЂСѓР¶РµРЅР°. Р’РµСЂСЃРёСЏ: " + std::to_string(n4_25_api.revision()));
 
   main_loop(n4_25_api);
 
