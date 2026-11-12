@@ -1,73 +1,59 @@
+#include "actions.h"
+#include "ts_queue.h"
 #include "utils.h"
 
 #include <chrono>
-#include <clocale>
-#include <condition_variable>
 #include <iostream>
-#include <mutex>
 #include <n4-25-api.h>
 #include <n4-25.h>
 #include <string>
 #include <thread>
 
-enum class action_t {
-  select_usb = 1,
-  set_amplitude = 2,
-  get_amplitude = 3,
-  exit = 4
-};
+const size_t USB_TICK_PERIOD_MS = 10;
 
 struct usb_sync_t
 {
-  std::mutex api_mutex{};
-  std::condition_variable cv{};
-  bool ready = false;
-  bool stop = false;
-} usb_sync;
-
-void log_info(const std::string& message)
-{
-  std::cout << message << std::endl;
-}
+  ts_queue_t<action_t> actions_queue;
+  ts_queue_t<std::string> results_queue;
+} sync;
 
 void usb_tick(const n4_25_api_t& n4_25_api)
 {
-  {
-    std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
-    n4_25_api.usb_init(1400);
-    usb_sync.ready = true;
-  }
-  usb_sync.cv.notify_one();
+  const size_t accept_action_period_ms = 100;
+  const size_t usb_tick_count_to_accept_action = accept_action_period_ms / USB_TICK_PERIOD_MS;
 
+  n4_25_api.usb_init(1400);
+
+  size_t usb_tick_counter = 0;
   while (1) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(USB_TICK_PERIOD_MS));
 
-    std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
-
-    if (usb_sync.stop) {
-      break;
-    }
     n4_25_api.usb_tick();
+
+    usb_tick_counter++;
+    if (usb_tick_counter >= usb_tick_count_to_accept_action) {
+      usb_tick_counter = 0;
+
+      std::string result_message = "";
+      if (!sync.actions_queue.empty()) {
+        action_t action = sync.actions_queue.pop();
+        result_message = take_action(action, n4_25_api, USB_TICK_PERIOD_MS);
+
+        sync.results_queue.push(result_message);
+        if (action == action_t::exit) {
+          break;
+        }
+      }
+    }
   }
 
-  {
-    std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
-    n4_25_api.usb_deinit();
-    usb_sync.ready = true;
-  }
-  usb_sync.cv.notify_one();
+  n4_25_api.usb_deinit();
 }
 
 void main_loop(n4_25_api_t& n4_25_api)
 {
   std::thread usb_tick_thread(usb_tick, n4_25_api);
-
-  {
-    std::unique_lock<std::mutex> usb_cv_lock(usb_sync.api_mutex);
-    usb_sync.cv.wait(usb_cv_lock, []() { return usb_sync.ready; });
-  }
-
-  std::string action_result = "";
+  std::string action_result;
 
   while (1) {
     log_info(
@@ -86,96 +72,16 @@ void main_loop(n4_25_api_t& n4_25_api)
       get_input<int>(static_cast<int>(action_t::select_usb), static_cast<int>(action_t::exit))
     );
 
-    switch (action) {
-      case (action_t::select_usb): {
-        std::vector<std::string> usb_list{};
-        {
-          std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
-          char* usb_devices = nullptr;
-          n4_25_api.get_usb_devices(&usb_devices);
-          usb_list = split_string(usb_devices);
-          n4_25_api.free_usb_devices(&usb_devices);
-        }
+    sync.actions_queue.push(action);
+    action_result = sync.results_queue.pop();
 
-        log_info("\nВыберите USB:");
-        size_t i = 0;
-        for (; i < usb_list.size(); ++i) {
-          log_info(std::to_string(i + 1) + ") " + usb_list[i]);
-        }
-        log_info(std::to_string(i + 1) + ") Вернуться в меню");
-
-        uint32_t option = get_input<uint32_t>(1, usb_list.size() + 1);
-        if (option != usb_list.size() + 1) {
-          if (n4_25_api.connect_usb(usb_list[option - 1].c_str())) {
-            action_result = "Успешное подключение";
-          } else {
-            action_result = "Ошибка: не удалось подключиться";
-          }
-        }
-      } break;
-
-      case (action_t::set_amplitude): {
-        bool n4_25_connected = false;
-        {
-          std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
-          if (n4_25_api.is_connected()) {
-            n4_25_connected = true;
-          } else {
-            action_result = "Ошибка: нет соединения с Н4-25";
-          }
-        }
-
-        if (n4_25_connected) {
-          log_info("\nВведите амплитуду:");
-          double target_amplitude = get_input<double>(0, 10);
-          double current_amplitude = 0;
-
-          {
-            std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
-            current_amplitude = n4_25_api.get_amplitude();
-            n4_25_api.set_amplitude(target_amplitude);
-          }
-
-          while (1) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-            if (current_amplitude == target_amplitude) {
-              action_result = "Амплитуда установлена";
-              break;
-            }
-
-            std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
-            if (!n4_25_api.is_connected()) {
-              action_result = "Ошибка: нет соединения с Н4-25";
-              break;
-            }
-            current_amplitude = n4_25_api.get_amplitude();
-          }
-        }
-      } break;
-
-      case (action_t::get_amplitude): {
-        std::lock_guard<std::mutex> usb_lock(usb_sync.api_mutex);
-        if (n4_25_api.is_connected()) {
-          action_result = "Текущий уровень сигнала " + std::to_string(n4_25_api.get_amplitude());
-        } else {
-          action_result = "Ошибка: нет соединения с Н4-25";
-        }
-      } break;
-
-      case (action_t::exit): {
-        log_info("Выход из программы");
-        {
-          std::unique_lock<std::mutex> usb_lock(usb_sync.api_mutex);
-          usb_sync.ready = false;
-          usb_sync.stop = true;
-          usb_sync.cv.wait(usb_lock, []() { return usb_sync.ready; });
-        }
-        usb_tick_thread.join();
-        return;
-      } break;
+    if (action == action_t::exit) {
+      log_info("\n" + action_result);
+      break;
     }
   }
+
+  usb_tick_thread.join();
 }
 
 int main()

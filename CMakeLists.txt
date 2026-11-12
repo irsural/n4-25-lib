@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
 project(n4_25 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(WIN32)
     if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
         message(FATAL_ERROR "Для n4-25.dll требуется 32-битное приложение.")

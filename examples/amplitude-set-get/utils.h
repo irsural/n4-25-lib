@@ -7,6 +7,11 @@
 #include <string>
 #include <vector>
 
+inline void log_info(const std::string& message)
+{
+  std::cout << message << std::endl;
+}
+
 template<typename T>
 T get_input(T min, T max)
 {
@@ -25,7 +30,7 @@ T get_input(T min, T max)
   return static_cast<T>(input);
 }
 
-std::vector<std::string> split_string(const char* str)
+inline std::vector<std::string> split_string(const char* str)
 {
   size_t start = 0;
   size_t i = 0;
