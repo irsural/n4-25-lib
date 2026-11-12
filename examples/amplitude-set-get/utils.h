@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <limits>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -17,14 +16,13 @@ T get_input(T min, T max)
 {
   std::cout << ">>> ";
   T input = 0;
-  std::cin >> input;
 
-  while (input < min || input > max) {
+  while (!(std::cin >> input) || input < min || input > max) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cout << "Ошибка: введите число от " << min << " до " << max << std::endl << ">>> ";
-    std::cin >> input;
   }
 
-  std::cin.clear();
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
   return static_cast<T>(input);

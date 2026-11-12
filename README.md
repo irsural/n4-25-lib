@@ -46,8 +46,8 @@ make run
 Зависимости:
 
 - MSVCP140.dll
-- VCRUNTIME140D.dll (только для debug сборки)
-- ucrtbased.dll (только для debug сборки)
+- VCRUNTIME140D.dll
+- ucrtbased.dll
 
 Проект CMake можно открыть с помощью IDE Visual Studio. Для этого нужно:
 

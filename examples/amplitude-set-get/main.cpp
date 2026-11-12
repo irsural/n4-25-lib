@@ -87,7 +87,7 @@ void main_loop(n4_25_api_t& n4_25_api)
 int main()
 {
 #ifdef _WIN32
-  SetConsoleOutputCP(65001); "Russian");
+  SetConsoleOutputCP(65001);
 #endif // _WIN32
 
   std::string error_message;

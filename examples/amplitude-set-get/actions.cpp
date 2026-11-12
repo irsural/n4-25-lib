@@ -10,23 +10,25 @@
 
 std::string take_action(action_t action, const n4_25_api_t& n4_25_api, size_t usb_tick_period_ms)
 {
+  std::string message = "";
   switch (action) {
     case (action_t::select_usb): {
-      return select_usb(n4_25_api);
+      message = select_usb(n4_25_api);
     } break;
 
     case (action_t::set_amplitude): {
-      return set_amplitude(n4_25_api, usb_tick_period_ms);
+      message = set_amplitude(n4_25_api, usb_tick_period_ms);
     } break;
 
     case (action_t::get_amplitude): {
-      return get_amplitude(n4_25_api);
+      message = get_amplitude(n4_25_api);
     } break;
 
     case (action_t::exit): {
-      return "Выход из программы";
+      message = "Выход из программы";
     } break;
   }
+  return message;
 }
 
 std::string select_usb(const n4_25_api_t& n4_25_api)
