@@ -28,6 +28,9 @@
 
 Пример демонстрирует подключение к Н4-25, установку и чтение амплитуды с прибора.
 
+Аналогичный пример на Python находится в папке **./examples/amplitude-set-get-py**.
+Библиотека загружается через `ctypes`.
+
 ### Linux
 
 Зависимости:
@@ -40,6 +43,13 @@
 make build
 make run
 ```
+
+#### Запуск примера на python
+
+```bash
+make run_py
+```
+
 
 ### Windows
 
@@ -57,6 +67,13 @@ make run
 - выбрать цель `amplitude-set-get` для сборки и запуска.
 
 Пресет выбирает архитектуру **Win32** и добавляет папку `./lib` в `PATH`.
+
+#### Запуск примера на python
+
+```bat
+set PATH=%CD%\lib;%PATH%
+python examples\amplitude-set-get-py\main.py
+```
 
 
 ## Использование на Linux
