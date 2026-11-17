@@ -1,120 +1,117 @@
 # Описание
 
-Динамическая библиотека n4-25-lib для управления калибратором Н4-25.
-
+Динамическая библиотека n4-25-lib для управления калибратором N4-25.
 
 ## Поддерживаемые платформы
 
-Поставляемые библиотеки скомпилированы под разные архитектуры:
-
-| Файл              | Целевая платформа     | Компилятор для сборки примера  |
-| ----------------- | --------------------- | ------------------------------ |
-| `lib/n4-25.dll`   | Windows x86, 32 бита  | MSVC                           |
-| `lib/libn4-25.so` | Linux x86-64, 64 бита | GCC                            |
-
+| Каталог              | Runtime-файл       | Import library | Архитектура |
+| -------------------- | ------------------ | -------------- | ----------- |
+| `lib/windows-x86`    | `n4-25.dll`        | `n4-25.lib`    | Windows x86 |
+| `lib/windows-amd64`  | `n4-25.dll`        | `n4-25.lib`    | Windows x64 |
+| `lib/linux-x86`      | `libn4-25.so`      | —              | Linux x86   |
+| `lib/linux-amd64`    | `libn4-25.so`      | —              | Linux x64   |
 
 ## Файлы проекта
 
-- `src` - заголовочные файлы для работы с динамической библиотекой.
-- `lib` - динамические библиотеки.
-- `examples` - примеры работы с библиотекой.
+- `src/n4-25.h` — публичный C/C++-заголовок с API.
+- `lib/<platform>-<arch>` — runtime-библиотеки.
+- `examples/amplitude-set-get` — пример на C++.
+- `examples/amplitude-set-get-py` — пример на Python.
 
-Корневой CMake определяет цель `n4_25::n4_25` для подключения библиотеки.
+CMake определяет цель `n4_25::n4_25`. Она автоматически выбирает библиотеку для текущей
+платформы и разрядности. При необходимости каталог можно переопределить через
+`N4_25_ARTIFACT_DIR`.
 
+## Подключение
+
+```cmake
+add_subdirectory(path/to/n4-25-lib)
+
+add_executable(app main.cpp)
+target_link_libraries(app PRIVATE n4_25::n4_25)
+```
+
+Runtime-файл библиотеки должен находиться в путях поиска динамического загрузчика.
+Например:
+
+```bash
+LD_LIBRARY_PATH="$PWD/lib/linux-amd64:$LD_LIBRARY_PATH" ./app
+```
 
 ## Пример
 
-Пример работы с библиотекой находится в папке **./examples/amplitude-set-get**.
+Пример `amplitude-set-get` демонстрирует подключение к N4-25, установку и чтение амплитуды.
 
-Пример демонстрирует подключение к Н4-25, установку и чтение амплитуды с прибора.
+Python-пример загружает библиотеку явно, с помощью ``ctypes.CDLL``.
 
-Аналогичный пример на Python находится в папке **./examples/amplitude-set-get-py**.
-Библиотека загружается через `ctypes`.
+```bash
+make run_py
+```
 
 ### Linux
 
 Зависимости:
 
-- libudev.so.1
+- `libudev.so.1`
 
-Сборку и запуск примера можно выполнить командой
+Сборка и запуск:
 
 ```bash
 make build
 make run
 ```
 
-#### Запуск примера на python
-
-```bash
-make run_py
-```
-
+`make run` добавляет `lib/linux-amd64` в `LD_LIBRARY_PATH`.
 
 ### Windows
 
 Зависимости:
 
-- MSVCP140.dll
-- VCRUNTIME140D.dll
-- ucrtbased.dll
+- `MSVCP140.dll`
+- `VCRUNTIME140.dll`
+- `ucrtbase.dll`
 
-Проект CMake можно открыть с помощью IDE Visual Studio. Для этого нужно:
+Проект CMake можно открыть в Visual Studio:
 
-- открыть корневую папку репозитория через **File → Open → Folder**
-- выбрать пресет настройки `windows-x86`
-- выбрать пресет сборки `windows-x86-debug` или `windows-x86-release`
-- выбрать цель `amplitude-set-get` для сборки и запуска.
+- открыть корневую папку репозитория через **File → Open → Folder**;
+- выбрать пресет сборки `windows-amd64-debug` или `windows-amd64-release`;
+- выбрать цель `amplitude-set-get`.
 
-Пресет выбирает архитектуру **Win32** и добавляет папку `./lib` в `PATH`.
+Пресет добавляет `lib/windows-amd64` в `PATH`.
 
-#### Запуск примера на python
-
-```bat
-set PATH=%CD%\lib;%PATH%
-python examples\amplitude-set-get-py\main.py
-```
-
-
-## Использование на Linux
-
-### Доступ к USB-устройству
+## Доступ к USB-устройству на Linux
 
 Для доступа к USB-устройству у пользователя должны быть необходимые права.
 
-Права можно обеспечить с помощью запуска программы от суперпользователя либо с помощью добавления
-правила в udev.
+Права можно обеспечить запуском программы от суперпользователя либо правилом udev.
 
-#### Запуск с правами суперпользователя
+### Запуск с правами суперпользователя
 
 ```bash
 make build
 sudo make run
 ```
 
-#### Добавление правила udev
+### Правило udev
 
-Для дистрибутивов на базе Debian нужно:
+Для дистрибутивов на базе Debian создайте файл
+`/etc/udev/rules.d/99-n4-25.rules`:
 
-- создать файл **/etc/udev/rules.d/99-n4-25.rules** со следующим содержимым:
+```udev
+ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5711", MODE="0660", GROUP="plugdev"
+```
 
-  ```udev
-  ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5711", MODE="0660", GROUP="plugdev"
-  ```
+Перезагрузите правила:
 
-- перезагрузить правила udev:
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
 
-  ```bash
-  sudo udevadm control --reload-rules
-  sudo udevadm trigger
-  ```
+Если пользователь не входит в группу `plugdev`, добавьте его:
 
-- если пользователь не входит в группу **plugdev**, то нужно добавить:
+```bash
+sudo usermod -aG plugdev <user>
+```
 
-  ```bash
-  sudo usermod -aG plugdev <user>
-  ```
-
-  После добавления пользователя в группу нужно перезайти в учетную запись.
-
-
+После добавления пользователя в группу нужно перезайти в учётную запись.
