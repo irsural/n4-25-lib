@@ -5,7 +5,7 @@ import threading
 import time
 
 from actions import action_t, take_action
-from n4_25 import free_n4_25_lib, load_n4_25_lib, n4_25_api_t, n4_25_init_api
+from n4_25 import load_n4_25_lib, n4_25_api_t
 from utils import get_input
 
 USB_TICK_PERIOD_MS = 10
@@ -95,25 +95,16 @@ def main() -> int:
         ctypes.windll.kernel32.SetConsoleOutputCP(65001)
 
     try:
-        n4_25_lib = load_n4_25_lib()
-    except OSError as error:
+        n4_25_api = load_n4_25_lib()
+    except (OSError, AttributeError) as error:
         print(
             f"Не удалось загрузить библиотеку n4-25. Ошибка: {error}", file=sys.stderr
         )
         return 1
 
-    n4_25_api = n4_25_init_api(n4_25_lib)
-    if n4_25_api is None:
-        print("Не удалось инициализировать библиотеку n4-25", file=sys.stderr)
-        free_n4_25_lib(n4_25_lib)
-        return 1
+    print(f"Библиотека n4-25 подключена. Версия: {n4_25_api.revision()}")
 
-    print(f"Библиотека n4-25 загружена. Версия: {n4_25_api.revision()}")
-
-    exit_code = main_loop(n4_25_api)
-
-    free_n4_25_lib(n4_25_lib)
-    return exit_code
+    return main_loop(n4_25_api)
 
 
 if __name__ == "__main__":

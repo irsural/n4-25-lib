@@ -1,5 +1,3 @@
-"""Загрузка динамической библиотеки n4-25 и привязка её функций (аналог src/n4-25.h)."""
-
 from __future__ import annotations
 
 import ctypes
@@ -12,11 +10,6 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ctypes import _Pointer
-
-if sys.platform == "win32":
-    _LIBRARY_NAME = "n4-25.dll"
-else:
-    _LIBRARY_NAME = "libn4-25.so"
 
 
 class dc_polarity_t(enum.IntEnum):
@@ -31,22 +24,18 @@ class signal_type_t(enum.IntEnum):
     dcv = 3
 
 
-def load_n4_25_lib() -> ctypes.CDLL:
+def load_n4_25_lib() -> n4_25_api_t:
     if sys.platform == "win32":
-        return ctypes.CDLL(_LIBRARY_NAME)
-    return ctypes.CDLL(_LIBRARY_NAME, mode=os.RTLD_NOW | os.RTLD_LOCAL)
-
-
-def free_n4_25_lib(library: ctypes.CDLL) -> None:
-    if sys.platform == "win32":
-        ctypes.windll.kernel32.FreeLibrary(ctypes.c_void_p(library._handle))
+        library = ctypes.CDLL("n4-25.dll")
+    elif sys.platform.startswith("linux"):
+        library = ctypes.CDLL("libn4-25.so", mode=os.RTLD_NOW | os.RTLD_LOCAL)
     else:
-        import _ctypes
+        raise OSError(f"Неподдерживаемая платформа: {sys.platform}")
 
-        _ctypes.dlclose(library._handle)
+    return n4_25_api_t(library)
 
 
-# Порядок и сигнатуры повторяют struct n4_25_api_t из src/n4-25-api.h.
+# Порядок и сигнатуры повторяют публичный n4-25.h.
 _BINDINGS: tuple[tuple[str, type[Any] | None, list[type[Any]]], ...] = (
     ("revision", c_int, []),
     ("usb_init", None, [c_size_t]),
@@ -98,15 +87,9 @@ class n4_25_api_t:
     is_signal_ready: Callable[[], int]
 
     def __init__(self, library: ctypes.CDLL) -> None:
+        self._library = library
         for name, restype, argtypes in _BINDINGS:
             function = getattr(library, name)
             function.restype = restype
             function.argtypes = argtypes
             setattr(self, name, function)
-
-
-def n4_25_init_api(library: ctypes.CDLL) -> n4_25_api_t | None:
-    try:
-        return n4_25_api_t(library)
-    except AttributeError:
-        return None
