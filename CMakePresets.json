@@ -16,7 +16,7 @@
         "CMAKE_CXX_COMPILER": "g++"
       },
       "environment": {
-        "LD_LIBRARY_PATH": "${sourceDir}/lib:$penv{LD_LIBRARY_PATH}"
+        "LD_LIBRARY_PATH": "${sourceDir}/lib/linux-amd64:$penv{LD_LIBRARY_PATH}"
       }
     },
     {
@@ -34,7 +34,7 @@
       }
     },
     {
-      "name": "windows-x86",
+      "name": "windows-amd64",
       "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "condition": {
@@ -46,9 +46,9 @@
         "N4_25_BUILD_EXAMPLES": true
       },
       "environment": {
-        "PATH": "${sourceDir}/lib;$penv{PATH}"
+        "PATH": "${sourceDir}/lib/windows-amd64;$penv{PATH}"
       },
-      "architecture": "Win32"
+      "architecture": "x64"
     }
   ],
   "buildPresets": [
@@ -71,8 +71,8 @@
       }
     },
     {
-      "name": "windows-x86-debug",
-      "configurePreset": "windows-x86",
+      "name": "windows-amd64-debug",
+      "configurePreset": "windows-amd64",
       "configuration": "Debug",
       "condition": {
         "type": "equals",
@@ -81,8 +81,8 @@
       }
     },
     {
-      "name": "windows-x86-release",
-      "configurePreset": "windows-x86",
+      "name": "windows-amd64-release",
+      "configurePreset": "windows-amd64",
       "configuration": "Release",
       "condition": {
         "type": "equals",

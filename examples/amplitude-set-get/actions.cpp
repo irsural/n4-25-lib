@@ -2,26 +2,25 @@
 
 #include "utils.h"
 
-#include <n4-25-api.h>
-#include <n4-25.h>
+#include <chrono>
 #include <string>
 #include <thread>
 #include <vector>
 
-std::string take_action(action_t action, const n4_25_api_t& n4_25_api, size_t usb_tick_period_ms)
+std::string take_action(action_t action, size_t usb_tick_period_ms)
 {
   std::string message = "";
   switch (action) {
     case (action_t::select_usb): {
-      message = select_usb(n4_25_api);
+      message = select_usb();
     } break;
 
     case (action_t::set_amplitude): {
-      message = set_amplitude(n4_25_api, usb_tick_period_ms);
+      message = set_amplitude_action(usb_tick_period_ms);
     } break;
 
     case (action_t::get_amplitude): {
-      message = get_amplitude(n4_25_api);
+      message = get_amplitude_action();
     } break;
 
     case (action_t::exit): {
@@ -31,15 +30,15 @@ std::string take_action(action_t action, const n4_25_api_t& n4_25_api, size_t us
   return message;
 }
 
-std::string select_usb(const n4_25_api_t& n4_25_api)
+std::string select_usb()
 {
   std::string action_result = "";
 
   std::vector<std::string> usb_list{};
   char* usb_devices = nullptr;
-  n4_25_api.get_usb_devices(&usb_devices);
+  get_usb_devices(&usb_devices);
   usb_list = split_string(usb_devices);
-  n4_25_api.free_usb_devices(&usb_devices);
+  free_usb_devices(&usb_devices);
 
   log_info("\nВыберите USB:");
   size_t i = 0;
@@ -52,7 +51,7 @@ std::string select_usb(const n4_25_api_t& n4_25_api)
   //  лучше вызывать тики с одинаковой периодичностью
   uint32_t option = get_input<uint32_t>(1, usb_list.size() + 1);
   if (option != usb_list.size() + 1) {
-    if (n4_25_api.connect_usb(usb_list[option - 1].c_str())) {
+    if (connect_usb(usb_list[option - 1].c_str())) {
       action_result = "Успешное подключение";
     } else {
       action_result = "Ошибка: не удалось подключиться";
@@ -64,26 +63,25 @@ std::string select_usb(const n4_25_api_t& n4_25_api)
   return action_result;
 }
 
-std::string set_amplitude(const n4_25_api_t& n4_25_api, size_t usb_tick_period_ms)
+std::string set_amplitude_action(size_t usb_tick_period_ms)
 {
-  if (!n4_25_api.is_connected()) {
+  if (!is_connected()) {
     return "Ошибка: нет соединения с Н4-25";
   }
 
   log_info("\nВведите амплитуду:");
   double target_amplitude = get_input<double>(0, 10);
-  double current_amplitude = n4_25_api.get_amplitude();
+  double current_amplitude = get_amplitude();
 
-  n4_25_api.set_amplitude(target_amplitude);
+  set_amplitude(target_amplitude);
 
   while (current_amplitude != target_amplitude) {
-    n4_25_api.usb_tick();
+    usb_tick();
 
-    current_amplitude = n4_25_api.get_amplitude();
+    current_amplitude = get_amplitude();
 
-    if (!n4_25_api.is_connected()) {
+    if (!is_connected()) {
       return "Ошибка: нет соединения с Н4-25";
-      break;
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(usb_tick_period_ms));
@@ -92,10 +90,10 @@ std::string set_amplitude(const n4_25_api_t& n4_25_api, size_t usb_tick_period_m
   return "Амплитуда установлена";
 }
 
-std::string get_amplitude(const n4_25_api_t& n4_25_api)
+std::string get_amplitude_action()
 {
-  if (n4_25_api.is_connected()) {
-    return "Текущий уровень сигнала " + std::to_string(n4_25_api.get_amplitude());
+  if (is_connected()) {
+    return "Текущий уровень сигнала " + std::to_string(get_amplitude());
   } else {
     return "Ошибка: нет соединения с Н4-25";
   }
