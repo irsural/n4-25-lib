@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+from pathlib import Path
 import enum
 import os
 import sys
@@ -26,12 +27,14 @@ class signal_type_t(enum.IntEnum):
 
 def load_n4_25_lib() -> n4_25_api_t:
     if sys.platform == "win32":
-        library = ctypes.CDLL("n4-25.dll")
+        library_folder = "windows-amd64"
     elif sys.platform.startswith("linux"):
-        library = ctypes.CDLL("libn4-25.so", mode=os.RTLD_NOW | os.RTLD_LOCAL)
+        library_folder = "linux_amd64"
     else:
         raise OSError(f"Неподдерживаемая платформа: {sys.platform}")
-
+    
+    library_full_path = Path(os.path.dirname(__file__) + f"/../../lib/{library_folder}/n4-25.dll").resolve()
+    library = ctypes.CDLL(str(library_full_path))
     return n4_25_api_t(library)
 
 
