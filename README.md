@@ -38,11 +38,12 @@ Runtime-файл библиотеки должен находиться в пу�
 LD_LIBRARY_PATH="$PWD/lib/linux-amd64:$LD_LIBRARY_PATH" ./app
 ```
 
-## Пример
+## Примеры
 
 Пример `amplitude-set-get` демонстрирует подключение к N4-25, установку и чтение амплитуды.
 
-Python-пример загружает библиотеку явно, с помощью ``ctypes.CDLL``.
+Python-пример `amplitude-set-get-py`  загружает библиотеку явно, по полному пути, с
+помощью ``ctypes.CDLL``.
 
 ```bash
 make run_py
@@ -67,9 +68,7 @@ make run
 
 Зависимости:
 
-- `MSVCP140.dll`
-- `VCRUNTIME140.dll`
-- `ucrtbase.dll`
+- Microsoft Visual C++ Redistributable 2015–2022
 
 Проект CMake можно открыть в Visual Studio:
 
