@@ -11,8 +11,7 @@ run: build
 
 .PHONY: run_py
 run_py:
-	LD_LIBRARY_PATH="$(CURDIR)/lib/linux-amd64$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}" \
-		python3 examples/amplitude-set-get-py/main.py
+	python3 examples/amplitude-set-get-py/main.py
 
 .PHONY: clean
 clean:

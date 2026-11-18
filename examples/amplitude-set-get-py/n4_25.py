@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import ctypes
-from pathlib import Path
 import enum
 import os
 import sys
 from collections.abc import Callable
 from ctypes import POINTER, c_char_p, c_double, c_int, c_size_t
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -27,13 +27,15 @@ class signal_type_t(enum.IntEnum):
 
 def load_n4_25_lib() -> n4_25_api_t:
     if sys.platform == "win32":
-        library_folder = "windows-amd64"
+        platform_path = "windows-amd64/n4-25.dll"
     elif sys.platform.startswith("linux"):
-        library_folder = "linux_amd64"
+        platform_path = "linux-amd64/libn4-25.so"
     else:
         raise OSError(f"Неподдерживаемая платформа: {sys.platform}")
-    
-    library_full_path = Path(os.path.dirname(__file__) + f"/../../lib/{library_folder}/n4-25.dll").resolve()
+
+    library_full_path = Path(
+        os.path.dirname(__file__) + f"/../../lib/{platform_path}"
+    ).resolve()
     library = ctypes.CDLL(str(library_full_path))
     return n4_25_api_t(library)
 

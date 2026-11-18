@@ -90,7 +90,7 @@ def main_loop(n4_25_api: n4_25_api_t) -> None:
     usb_tick_thread.join()
 
 
-def main() -> int:
+def main():
     if sys.platform == "win32":
         ctypes.windll.kernel32.SetConsoleOutputCP(65001)
 
@@ -104,7 +104,7 @@ def main() -> int:
 
     print(f"Библиотека n4-25 подключена. Версия: {n4_25_api.revision()}")
 
-    return main_loop(n4_25_api)
+    main_loop(n4_25_api)
 
 
 if __name__ == "__main__":
